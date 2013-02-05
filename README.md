@@ -1,4 +1,4 @@
-CMSC498a Spring 2013: Embedded Systems
+CMSC498a Spring 2013: Embedded Systems at UMD
 ======
 George Pittarelli's workspace
 

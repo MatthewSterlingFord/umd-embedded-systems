@@ -30,8 +30,8 @@ void RIT_IRQHandler(void) {
 
 int main(void) {
 	// Setup LED pin (using builtin LED on pin P0.22)
-	LPC_GPIO0->FIODIR = (1 << 22);
-	LPC_GPIO0->FIOSET = (1 << 22);
+	LPC_GPIO0->FIODIR = 1 << 22;
+	LPC_GPIO0->FIOSET = 1 << 22;
 
 	// Power for RIT clock
 	LPC_SC->PCONP |= 1 << 16;
@@ -40,6 +40,8 @@ int main(void) {
 	// Writing `01` to bits 27:26 selects the CPU Clock, undivided
 	LPC_SC->PCLKSEL1 |= 1 << 26;
 
+	// RIT comparison value - the counter gets compared to this and fires
+	// an interrupt if they are equal. SystemClock/2 will be 1/2 of a second.
 	LPC_RIT->RICOMPVAL = SystemCoreClock / 2;
 
 	// Initialize RIT mask and counter (probably redundant)

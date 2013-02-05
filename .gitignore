@@ -1,0 +1,16 @@
+*.o
+*.lss
+*.lst
+*.d
+*.h
+*.map
+*.elf
+*.hex
+*.eep
+*.old
+*.sym
+*~
+[#]*[#]
+Debug/
+.metadata/
+CMSISv2p00_LPC17xx/

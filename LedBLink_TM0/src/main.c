@@ -1,11 +1,11 @@
 /*
-===============================================================================
- Name        : main.c
- Author      : 
- Version     :
- Copyright   : Copyright (C) 
- Description : main definition
-===============================================================================
+	===============================================================================
+	Name				 : main.c
+	Author			 :
+	Version		 :
+	Copyright	 : Copyright (C)
+	Description : main definition
+	===============================================================================
 */
 
 #ifdef __USE_CMSIS
@@ -22,70 +22,50 @@ __CRP const unsigned int CRP_WORD = CRP_NO_CRP ;
 
 // TODO: insert other include files here
 
-// TODO: insert other definitions and declarations here
-void TIMER0_interrupt(void) {
-	LPC_GPIO0->FIOPIN ^= (1 << 22);
-}
-
 int main(void) {
+	// Setup input clock source
+	LPC_SC->CLKSRCSEL = 0;   // Select main clock source
+	LPC_SC->PLL0CON = 0;     // Bypass PLL0, use clock source directly
+
+	// Feed the PLL register so the PLL0CON value goes into effect
+	LPC_SC->PLL0FEED = 0xAA; // set to 0xAA
+	LPC_SC->PLL0FEED = 0x55; // set to 0x55
+
+	// Set cpu clock divider to divide by 1
+	// (divides by value set here + 1)
+	LPC_SC->CCLKCFG = 0;
+
+	// Set bits 2 and 3 of PCLKSEL0 to choose peripheral divider for TIMER0
+	// Setting to 1 chooses no divider
+	LPC_SC->PCLKSEL0 = (1 << 2);
+
+	// Setup IO pins
 	LPC_GPIO0->FIODIR = (1 << 22);
 	LPC_GPIO0->FIOSET = (1 << 22);
 
-
 	// Setup timer
-	LPC_SC->PCONP |= 1;  // power
-    LPC_PINCON->PINSEL3 &= ~((0x3<<20)|(0x3<<22));
-    LPC_PINCON->PINSEL3 |= ((0x3<<20)|(0x3<<22));
-	// LPC_SC->PCLKSEL0 = 2; // select clock (default 0)
+	LPC_SC->PCONP |= 1;		 // power for timer
 
-    uint8_t pclk;
-    uint32_t pclkdiv = (LPC_SC->PCLKSEL1 >> 14) & 0x03;
+	LPC_TIM0->PR = 0;
 
-    switch ( pclkdiv )
-    {
-      case 0x00:
-      default:
-            pclk = 4;
-            break;
-      case 0x01:
-            pclk = 1;
-            break;
-      case 0x02:
-            pclk = 2;
-            break;
-      case 0x03:
-            pclk = 8;
-            break;
-    }
+	LPC_TIM0->MR0 = 1/4;
 
-    LPC_TIM0->PR  = 0;
+	// Capture 0 and 1 on rising edge, and enable interrupt
+	LPC_TIM0->CCR = (0x1<<0)|(0x1<<2)|(0x1<<3)|(0x1<<5);
+	LPC_TIM0->MCR = (0x3<<0);			 // Interrupt and Reset on MR0 and MR1
 
-    LPC_TIM0->MR0 = 1/4;
+	LPC_TIM0->TCR = 0x02;						// reset timer
+	LPC_TIM0->PR	= 1;
+	LPC_TIM0->MR0 = 12000000;				// match value
+	LPC_TIM0->IR	= 0xff;						// reset all interrrupts
+	LPC_TIM0->MCR = 0x04;						// stop timer on match
+	LPC_TIM0->TCR = 1;							// enable timer
 
-    /* Capture 0 and 1 on rising edge, interrupt enable. */
-    LPC_TIM0->CCR = (0x1<<0)|(0x1<<2)|(0x1<<3)|(0x1<<5);
-    LPC_TIM0->MCR = (0x3<<0);      /* Interrupt and Reset on MR0 and MR1 */
-
-    NVIC_EnableIRQ(TIMER0_IRQn);
-
-    LPC_TIM0->TCR = 0x02;           /* reset timer */
-    LPC_TIM0->PR  = (SystemCoreClock / (pclk * 1000));
-    LPC_TIM0->MR0 = 100;  //enter delay time
-    LPC_TIM0->IR  = 0xff;           /* reset all interrrupts */
-    LPC_TIM0->MCR = 0x04;           /* stop timer on match */
-	LPC_TIM0->TCR = 1;  // enable
-	// Enter an infinite loop, just incrementing a counter
-	volatile static int i = 0 ;
 	while(1) {
-		i++;
-		if (i >= 300000) {
-			i = 0;
-		}
 		if (!(LPC_TIM0->TCR & 0x01)) {
 			LPC_GPIO0->FIOPIN ^= (1 << 22);
-		    LPC_TIM0->TCR = 0x02;           /* reset timer */
-		    LPC_TIM0->IR  = 0xff;           /* reset all interrrupts */
-			LPC_TIM0->TCR = 1;  // enable
+			LPC_TIM0->TCR = 0x02;						// reset timer
+			LPC_TIM0->TCR = 1;				// enable timer
 		}
 	}
 	return 0 ;

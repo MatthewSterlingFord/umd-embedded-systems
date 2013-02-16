@@ -24,7 +24,7 @@ __CRP const unsigned int CRP_WORD = CRP_NO_CRP ;
 
 int main(void) {
 	// Setup input clock source
-	LPC_SC->CLKSRCSEL = 0;   // Select main clock source
+	LPC_SC->CLKSRCSEL = 1;   // Select main clock source
 	LPC_SC->PLL0CON = 0;     // Bypass PLL0, use clock source directly
 
 	// Feed the PLL register so the PLL0CON value goes into effect
@@ -47,8 +47,6 @@ int main(void) {
 	LPC_SC->PCONP |= 1;		 // power for timer
 
 	LPC_TIM0->PR = 0;
-
-	LPC_TIM0->MR0 = 1/4;
 
 	// Capture 0 and 1 on rising edge, and enable interrupt
 	LPC_TIM0->CCR = (0x1<<0)|(0x1<<2)|(0x1<<3)|(0x1<<5);

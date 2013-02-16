@@ -15,8 +15,6 @@
 #include <cr_section_macros.h>
 #include <NXP/crp.h>
 
-
-
 // Some macros to speed bit twiddling
 #define BITON(var,bit) var |= (1 << bit)
 #define BITOFF(var,bit) var &= ~(1 << bit)
@@ -40,6 +38,14 @@ __CRP const unsigned int CRP_WORD = CRP_NO_CRP ;
 void TIMER0_IRQHandler(void) {
 	LPC_GPIO0->FIOPIN ^= (1 << 22);
     LPC_TIM0->IR  = 0xff;           // reset all interrrupts
+
+
+    LPC_TIM1->TCR = 0x02;        // reset timer
+    LPC_TIM1->PR  = 1;          // Prescale
+    LPC_TIM1->TC  = 0;          //  counter
+    LPC_TIM1->MR0 = LPC_TIM0->CR0; // match value
+    LPC_TIM1->IR  = 0xff;        // reset all interrrupts
+	LPC_TIM1->TCR = 1;
 }
 
 int main(void) {
@@ -56,9 +62,10 @@ int main(void) {
 	// Set bits 2 and 3 of PCLKSEL0 to choose peripheral divider for TIMER0
 	// Setting to 1 chooses no divider
 	LPC_SC->PCLKSEL0 |= (1 << 2);
+	LPC_SC->PCLKSEL0 |= (1 << 4);
 
-	// Power TIMER0
-	LPC_SC->PCONP |= 1;
+	// Power TIMER0, TIMER1
+	LPC_SC->PCONP |= 3;
 
 	// Capture Control Register
 	//   bit 0 - Capture on CAP0.0 rising edge
@@ -67,23 +74,37 @@ int main(void) {
 	//   bit 5 - Interrupt on CAP0.1 event
 	LPC_TIM0->CCR = 1 | (1 << 4) | (1 << 2) | (1 << 5);
 
+	// Bring MAT1.0 low on timer1 match
+	LPC_TIM1->EMR = 2 << 4;
+
 	// Math control register - disable everything
 	LPC_TIM0->MCR = 0;
+	LPC_TIM1->MCR = (1 << 1) | (1 << 2);
 
 	// Setup IO pins
 	LPC_GPIO0->FIODIR = (1 << 22);
 	LPC_GPIO0->FIOSET = (1 << 22);
 
+	LPC_PINCON->PINSEL3 &= ~(3 << 12);
+	LPC_GPIO1->FIODIR = (1 << 22);
+	LPC_GPIO1->FIOSET = (1 << 22);
+	LPC_GPIO1->FIOPIN |= (1 << 22);
+
+	LPC_PINCON->PINSEL3 |= (3 << 12);
+
+
 	// Configure pins
 	//   P1.26 as CAP0.0 (TIMER0 capture pin 0)
 	//   P1.27 as CAP0.1 (TIMER0 capture pin 1)
-	LPC_PINCON->PINSEL3 |= (3 << 20) | (3 << 22);
+	//   P1.22 as MAT1.0
+	LPC_PINCON->PINSEL3 |= (3 << 20) | (3 << 22)
+			             | (3 << 12);
 
 	// Timer0 interrupt
 	NVIC_EnableIRQ(TIMER0_IRQn);
 
     LPC_TIM0->TCR = 0x02;           // reset timer
-    LPC_TIM0->PR  = 1;              // No prescale
+    LPC_TIM0->PR  = 10;              // No prescale
     LPC_TIM0->MR0 = 0xffffffff;     // match value (unnecessary)
     LPC_TIM0->IR  = 0xff;           // reset all interrrupts
 	LPC_TIM0->TCR = 1;              // enable timer

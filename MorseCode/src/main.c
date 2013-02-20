@@ -12,8 +12,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "pins.h"
-#include "lcd44780.h"
+#define _BV(n) (1 << (n))
 
 #ifdef __USE_CMSIS
 #include "LPC17xx.h"
@@ -30,7 +29,7 @@
 // See crp.h header for more information
 __CRP const unsigned int CRP_WORD = CRP_NO_CRP ;
 
-uint32_t pulse_buffer[2][BUFFER_LEN] = {0};
+uint32_t pulse_buffer[2][MORSE_MAX_LEN] = {0};
 
 uint32_t current_buffer = 0;
 uint32_t buffer_pos = 0;
@@ -53,7 +52,7 @@ void TIMER0_IRQHandler(void) {
     	} */
 
     	if (rising_edge) {
-			if (pulse_len > 3000000) {
+			if (pulse_len > 10000000) {
 				buffer_pos = 0;
 				current_buffer ^= 1;
 	    		LPC_GPIO0->FIOPIN ^= _BV(22);
@@ -140,7 +139,8 @@ int main(void) {
 	LPC_GPIO0->FIOPIN &= ~_BV(22);
 	*/
 
-	uint32_t i, parse_buf, average, min, max, cnt, cur;
+	uint32_t i, parse_buf, average, min, max, cnt, cur, dash;
+	uint_fast8_t code, len;
 	//char message[sizeof(int)*8 + 1] = {0};
 	while (1) {
 		parse_buf = current_buffer ^ 1;
@@ -159,13 +159,28 @@ int main(void) {
 			printf("\nMin: %d  max: %d  avg: %d  of cnt: %d \n",
 					min, max, average, cnt);
 
+			len = cnt;
 			average /= 2;
+			code = 0;
 			for (i = 0; i < cnt; ++i) {
 				cur = pulse_buffer[parse_buf][i];
-				printf("%c", (cur < average)? '.':'-');
+				if (cur < (average - (average/2))) {
+					dash = 0;
+				} else if (cur > (average + (average/2))) {
+					dash = 1;
+				} else {
+					// dash is close to average, try to guess
+					dash = cur < 2000000;
+				}
+
+				printf("%c", dash? '-':'.');
+				if (cur > dash) {
+					code |= (1 << i);
+				}
 				pulse_buffer[parse_buf][i] = 0;
 			}
-			printf("\n");
+			char c = morse_decode(code, len);
+			printf("  =  %c \n", c);
 
 			/*
 			if (pulse_buffer[parse_buf][0] < 1000000) {

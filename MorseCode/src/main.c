@@ -45,27 +45,15 @@ void TIMER0_IRQHandler(void) {
 	// (for debouncing)
 	if (pulse_len > 60241) {
 		if (rising_edge) {
-			// Space between characters: (a long time)
+			// Space between characters: (aka a long time)
 			if (pulse_len > 10000000) {
 				// flip buffer
 				buffer_pos = 0;
 				current_buffer ^= 1;
-
-				// toggle LED
-				LPC_GPIO0 ->FIOPIN ^= _BV(22);
 			}
 		} else if (buffer_pos < (BUFFER_LEN - 1) && !rising_edge) {
 			pulse_buffer[current_buffer][buffer_pos] = pulse_len;
 			buffer_pos++;
-
-			if (pulse_len < 1000000) {
-				// Show 1 led
-				LPC_GPIO1 ->FIOPIN |= _BV(18);
-				LPC_GPIO1 ->FIOPIN &= ~(_BV(19) | _BV(20));
-			} else {
-				// Show 3 leds
-				LPC_GPIO1 ->FIOPIN |= _BV(18) | _BV(19) | _BV(20);
-			}
 		}
 	}
 

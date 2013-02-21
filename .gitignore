@@ -11,5 +11,6 @@
 *~
 [#]*[#]
 Debug/
+Release/
 .metadata/
 CMSISv2p00_LPC17xx/

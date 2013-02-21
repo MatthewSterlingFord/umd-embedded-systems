@@ -13,14 +13,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define _BV(n) (1 << (n))
-
 #ifdef __USE_CMSIS
 #include "LPC17xx.h"
 #endif
 
 #include <cr_section_macros.h>
 #include <NXP/crp.h>
+
+#include "main.h"
+#include "pins.h"
 
 // Must be power of two
 #define BUFFER_LEN 1024
@@ -30,10 +31,13 @@
 // See crp.h header for more information
 __CRP const unsigned int CRP_WORD = CRP_NO_CRP;
 
+/*
 uint32_t pulse_buffer[BUFFER_LEN] = {0};
 uint32_t buffer_pos = 0;
+*/
 
 int rising_edge = 1;
+/*
 void TIMER0_IRQHandler(void) {
   pulse_buffer[buffer_pos] = LPC_TIM0 ->IR;
   LPC_TIM0 ->IR = 0xff;
@@ -42,6 +46,7 @@ void TIMER0_IRQHandler(void) {
   // truncate buffer_pos to 10bits
   buffer_pos &= (BUFFER_LEN - 1);
 }
+*/
 
 int main(void) {
   LPC_SC ->CLKSRCSEL = 1;   // Select main clock source

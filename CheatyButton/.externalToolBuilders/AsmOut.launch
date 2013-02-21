@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<launchConfiguration type="org.eclipse.ui.externaltools.ProgramBuilderLaunchConfigurationType">
+<booleanAttribute key="org.eclipse.debug.ui.ATTR_LAUNCH_IN_BACKGROUND" value="false"/>
+<stringAttribute key="org.eclipse.ui.externaltools.ATTR_LOCATION" value="arm-none-eabi-gcc"/>
+<stringAttribute key="org.eclipse.ui.externaltools.ATTR_RUN_BUILD_KINDS" value="full,incremental,"/>
+<stringAttribute key="org.eclipse.ui.externaltools.ATTR_TOOL_ARGUMENTS" value="-Wa,-adhlns=$(&lt;:.c=.lst) -nostdlib -L&quot;E:\workspaces\LPCXpresso\CMSISv2p00_LPC17xx\Debug&quot; -Xlinker -Map=&quot;CheatyButton.map&quot; -Xlinker --gc-sections -mcpu=cortex-m3 -mthumb -T &quot;CheatyButton_Debug.ld&quot; -o &quot;CheatyButton.axf&quot; $(OBJS) $(USER_OBJS) $(LIBS)"/>
+<booleanAttribute key="org.eclipse.ui.externaltools.ATTR_TRIGGERS_CONFIGURED" value="true"/>
+</launchConfiguration>

@@ -31,13 +31,11 @@
 // See crp.h header for more information
 __CRP const unsigned int CRP_WORD = CRP_NO_CRP;
 
-/*
-uint32_t pulse_buffer[BUFFER_LEN] = {0};
-uint32_t buffer_pos = 0;
-*/
+extern uint32_t pulse_buffer[];// = {0};
+extern uint32_t buffer_pos; // = 0;
 
-int rising_edge = 1;
 /*
+int rising_edge = 1;
 void TIMER0_IRQHandler(void) {
   pulse_buffer[buffer_pos] = LPC_TIM0 ->IR;
   LPC_TIM0 ->IR = 0xff;

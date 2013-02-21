@@ -1,7 +1,15 @@
-#ifndef __PINS_h_
-#define __PINS_h_
+#ifndef __MAIN_h_
+#define __MAIN_h_
 
-extern uint32_t pulse_buffer[BUFFER_LEN];
+// Must be power of 2
+#define BUFFER_LEN 1024
+
+// Don't emit these symbols in assembly source
+#ifndef __ASSEMBLER__
+
+extern uint32_t pulse_buffer[];
 extern uint32_t buffer_pos;
 
-#endif __PINS_h_
+#endif /* __ASSEMBLER__ */
+
+#endif

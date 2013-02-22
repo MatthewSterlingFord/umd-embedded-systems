@@ -7,8 +7,8 @@
 // Don't emit these symbols in assembly source
 #ifndef __ASSEMBLER__
 
-extern uint32_t pulse_buffer[];
-extern uint32_t buffer_pos;
+extern volatile uint32_t pulse_buffer[];
+extern volatile uint32_t buffer_pos;
 
 #endif /* __ASSEMBLER__ */
 

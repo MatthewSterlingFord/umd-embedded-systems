@@ -31,17 +31,8 @@
 // See crp.h header for more information
 __CRP const unsigned int CRP_WORD = CRP_NO_CRP;
 
-volatile uint32_t pulse_buffer[BUFFER_LEN] = { 0 };
-volatile uint32_t buffer_pos; // = 0;
-
-void TIMER0_IRQHandler(void) {
-	pulse_buffer[buffer_pos] = LPC_TIM0 ->IR;
-	LPC_TIM0 ->IR = 0xff;
-	buffer_pos++;
-
-	// truncate buffer_pos to 10bits
-	buffer_pos &= (BUFFER_LEN - 1);
-}
+uint32_t volatile pulse_buffer[BUFFER_LEN] = { 0 };
+uint32_t volatile buffer_pos = 0;
 
 int main(void) {
 	LPC_SC ->CLKSRCSEL = 1;   // Select main clock source

@@ -14,13 +14,17 @@
 
 #include <cr_section_macros.h>
 #include <NXP/crp.h>
+#include <stdio.h>
 
+#include "alphanumeric.h"
 #include "main.h"
 
 // Variable to store CRP value in. Will be placed automatically
 // by the linker when "Enable Code Read Protect" selected.
 // See crp.h header for more information
 __CRP const unsigned int CRP_WORD = CRP_NO_CRP ;
+
+const char *HEX_CHAR_TABLE = "0123456789ABCDEF";
 
 int main(void) {
   LPC_SC ->CLKSRCSEL = 1;   // Select main clock source
@@ -34,14 +38,14 @@ int main(void) {
   LPC_SC ->CCLKCFG = 0;
 
   // Power ADC
-  LPC_SC ->PCONP |= _BV(22);
+  LPC_SC ->PCONP |= _BV(12);
 
   // Choose undivided peripheral clocks for TIMER0,1
   LPC_SC ->PCLKSEL0 |= (0 << 24);
 
   // Setup IO pins
-  LPC_GPIO0 ->FIODIR = _BV(22);
-  LPC_GPIO0 ->FIOSET = _BV(22);
+  LPC_GPIO0 ->FIODIR = 0;
+  LPC_GPIO0 ->FIOSET = 0;
 
   // Configure pins
   //   P0.23 as AD0.0
@@ -56,11 +60,24 @@ int main(void) {
   LPC_ADC->ADCR = _BV(0) | _BV(21);
 
   // A/D Interrupt Enable Register (all disabled)
-  LPC_ADC->ADINTEN = 0;
+  LPC_ADC->ADINTEN = _BV(0);
 
+  uint_fast16_t analog_val;
+
+  alpha_init();
 	while(1) {
 	  // Start conversion
+	  LPC_ADC->ADCR |= _BV(24);
 
+	  // Wait for conversion to finish
+	  // status bit automatically is cleared once it is
+	  // read as 1
+	  while (!(LPC_ADC->ADDR0 & _BV(31)));
+
+	  analog_val = (LPC_ADC->ADDR0 >> 4) & 0x0fff;
+	  alpha_display(HEX_CHAR_TABLE[analog_val >> 8]);
+	  // Print result
+	  printf ("%#X  %d\n", analog_val, analog_val);
 	}
 
 	return 0;

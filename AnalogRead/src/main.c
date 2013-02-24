@@ -77,8 +77,11 @@ int main(void) {
 
     analog_val = (LPC_ADC ->ADDR0 >> 4) & 0x0fff;
     alpha_display(HEX_CHAR_TABLE[analog_val >> 8]);
+
     // Print result
-    printf("%#X  %d\n", analog_val, analog_val);
+    if ((CoreDebug->DHCSR & CoreDebug_DHCSR_C_DEBUGEN_Msk)) {
+      printf("%#X  %d\n", analog_val, analog_val);
+    }
   }
 
   return 0;

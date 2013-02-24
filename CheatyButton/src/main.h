@@ -1,6 +1,8 @@
 #ifndef __MAIN_h_
 #define __MAIN_h_
 
+#define _BV(n) (1 << (n))
+
 // Must be power of 2
 #define BUFFER_LEN 1024
 

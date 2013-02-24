@@ -4,8 +4,8 @@
  Author      : George Pittarelli
  Version     :
  Description : Uses the capture feature of TIMER0 (using P1.26) to decode morse
-               code, which is printed to the debug console.
-               Requires semi-hosted library to print output.
+ code, which is printed to the debug console.
+ Requires semi-hosted library to print output.
  ===============================================================================
  */
 
@@ -32,7 +32,7 @@
 // See crp.h header for more information
 __CRP const unsigned int CRP_WORD = CRP_NO_CRP;
 
-uint32_t pulse_buffer[2][MORSE_MAX_LEN] = {{0}};
+uint32_t pulse_buffer[2][MORSE_MAX_LEN] = { { 0 } };
 
 uint32_t current_buffer = 0;
 uint32_t buffer_pos = 0;
@@ -42,7 +42,7 @@ int rising_edge = 1;
 void TIMER0_IRQHandler(void) {
   LPC_TIM0 ->TC = 0;      // begin timing next pulse
 
-  if (LPC_TIM0->IR & 1) {
+  if (LPC_TIM0 ->IR & 1) {
     // If this is from the match event, force swap the buffers
     LPC_TIM0 ->IR = 0xff;   // reset all interrrupts
     buffer_pos = 0;
@@ -60,12 +60,12 @@ void TIMER0_IRQHandler(void) {
     if (rising_edge) {
       // Space between characters: (aka a long time)
       /*
-      if (pulse_len > 7000000) {
-        // flip buffer
-        buffer_pos = 0;
-        current_buffer ^= 1;
-      }
-      */
+       if (pulse_len > 7000000) {
+       // flip buffer
+       buffer_pos = 0;
+       current_buffer ^= 1;
+       }
+       */
     } else if (buffer_pos < (BUFFER_LEN - 1)) {
       pulse_buffer[current_buffer][buffer_pos] = pulse_len;
       buffer_pos++;
@@ -119,9 +119,9 @@ int main(void) {
   // timer value is reset and interrupt is triggered
   LPC_TIM0 ->MCR = _BV(0) | _BV(1); // interrupt and reset timer on match
   LPC_TIM0 ->TCR = 0x02;            // reset timer
-  LPC_TIM0 ->PR  = 0;               // No prescale
+  LPC_TIM0 ->PR = 0;               // No prescale
   LPC_TIM0 ->MR0 = 8000000;         // match value
-  LPC_TIM0 ->IR  = 0xff;            // reset all interrrupts
+  LPC_TIM0 ->IR = 0xff;            // reset all interrrupts
 
   // Capture Control Register
   //   bit 0 - Capture on CAP0.0 rising edge
@@ -171,7 +171,8 @@ int main(void) {
       // pulses > 2.5x long are dashes.
       average = (min + max) / 2;
 
-      printf("\nMin: %d  max: %d  avg: %d  of cnt: %d \n", min, max, average, len);
+      printf("\nMin: %d  max: %d  avg: %d  of cnt: %d \n", min, max, average,
+          len);
 
       // The edge case for this algorithm is codes which are all dots or
       // all dashes. If this is the case, we can try to detect it. Based on
@@ -185,8 +186,8 @@ int main(void) {
           code = 0x1f;
         } // Implicit: else code = 0
       } else {
-        dot_bound = average - average/4;  // 2x - .5x = 1.5x
-        dash_bound = average + average/4; // 2x + .5x = 2.5x
+        dot_bound = average - average / 4;  // 2x - .5x = 1.5x
+        dash_bound = average + average / 4; // 2x + .5x = 2.5x
 
         for (i = 0; i < len; ++i) {
           is_dash = decode_buffer[i] > average;

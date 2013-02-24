@@ -4,13 +4,13 @@
 // and a right branch is a dash.
 // NULL bytes (\x00) represent unused entries.
 // See morse_decode for how this can be indexed into in O(1) time
-const char *TABLE = "\x00"
-                     "et"
-                    "ianm"
-                  "surwdkgo"
-      "hvf\x00l\x00pjbxcyzq\x00\x00"
-"54\x003\x00\x00\x002\x00\x00\x00\x00\x00\x00\x0016\x00\x00\x00\x00\x00\x00\x007\x00\x00\x008\x009\x00";
-
+const char *TABLE =
+    "\x00"
+        "et"
+        "ianm"
+        "surwdkgo"
+        "hvf\x00l\x00pjbxcyzq\x00\x00"
+        "54\x003\x00\x00\x002\x00\x00\x00\x00\x00\x00\x0016\x00\x00\x00\x00\x00\x00\x007\x00\x00\x008\x009\x00";
 
 /* Decode `code`, whose last `len` bits represent a morse code where a dot
  * is a 0 and a dash is a 1.

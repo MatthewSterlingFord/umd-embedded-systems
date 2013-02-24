@@ -5,7 +5,6 @@
 
 #define LCDGPIO LPC_GPIO2		//Change this to change the gpio IO port
 #define LCDDATA LPC_GPIO0		//Change this to change the data IO port
-
 #define MAX_CHAR_IN_ONE_LINE 24
 
 #define LCD_BACK_LIGHT_TIMEOUT 1000
@@ -27,21 +26,17 @@
 #define LCDRS	           (1 << 3)				//Change this to change the RS data pin
 #define LCDRW	           (1 << 4)				//Change this to change the RW data pin
 #define LCDEN	           (1 << 5)				//Change this to change the EN data pin
-
 #define LCD_D4 (1 << 4)							//Change this to change the D4 gpio pin
 #define LCD_D5 (1 << 5)							//Change this to change the D5 gpio pin
 #define LCD_D6 (1 << 6)							//Change this to change the D6 gpio pin
 #define LCD_D7 (1 << 7)							//Change this to change the D7 gpio pin
-
 #define LCD_DATA_MASK           (LCD_D4 | LCD_D5 | LCD_D6 | LCD_D7)
 #define LCD_BUSY_FLAG           LCD_D7
 
 //#define LCD_CONTROL_MASK        0x01C00000
 
-enum ROW_NUMBERS
-{
-  LINE1,
-  LINE2	
+enum ROW_NUMBERS {
+  LINE1, LINE2
 };
 
 void init_lcd(void);
@@ -51,6 +46,6 @@ void lcd_backlight_on(void);
 void lcd_backlight_off(void);
 int lcd_gotoxy(unsigned int x, unsigned int y);
 void lcd_putchar(int c);
-void lcd_command_write( unsigned char command );
+void lcd_command_write(unsigned char command);
 
 #endif

@@ -3,6 +3,4 @@
 
 #define _BV(n) (1 << (n))
 
-
-
 #endif __PINS_h_

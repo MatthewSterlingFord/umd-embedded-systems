@@ -26,6 +26,20 @@ __CRP const unsigned int CRP_WORD = CRP_NO_CRP;
 
 const char *HEX_CHAR_TABLE = "0123456789ABCDEF";
 
+uint_fast16_t analog_val;
+void ADC_IRQHandler(void) {
+  analog_val = (LPC_ADC ->ADDR0 >> 4) & 0x0fff;
+  alpha_display(HEX_CHAR_TABLE[analog_val >> 8]);
+
+  // Print result
+  if ((CoreDebug->DHCSR & CoreDebug_DHCSR_C_DEBUGEN_Msk)) {
+    printf("%#X  %d\n", analog_val, analog_val);
+  }
+
+  // Start conversion
+  LPC_ADC ->ADCR |= _BV(24);
+}
+
 int main(void) {
   LPC_SC ->CLKSRCSEL = 1;   // Select main clock source
   LPC_SC ->PLL0CON = 0;     // Bypass PLL0, use clock source directly
@@ -46,6 +60,7 @@ int main(void) {
   // Setup IO pins
   LPC_GPIO0 ->FIODIR = 0;
   LPC_GPIO0 ->FIOSET = 0;
+  alpha_init();
 
   // Configure pins
   //   P0.23 as AD0.0
@@ -59,30 +74,16 @@ int main(void) {
   //  0 in bits 26:24 - don't start a conversion yet
   LPC_ADC ->ADCR = _BV(0) | _BV(21);
 
-  // A/D Interrupt Enable Register (all disabled)
+  // A/D Interrupt Enable Register
+  //  1 in bit 0 - Interrupt when conversion on ADC channel 0 completes
   LPC_ADC ->ADINTEN = _BV(0);
 
-  uint_fast16_t analog_val;
+  NVIC_EnableIRQ(ADC_IRQn);
 
-  alpha_init();
-  while (1) {
-    // Start conversion
-    LPC_ADC ->ADCR |= _BV(24);
+  // Start conversion
+  LPC_ADC ->ADCR |= _BV(24);
 
-    // Wait for conversion to finish
-    // status bit automatically is cleared once it is
-    // read as 1
-    while (!(LPC_ADC ->ADDR0 & _BV(31)))
-      ;
-
-    analog_val = (LPC_ADC ->ADDR0 >> 4) & 0x0fff;
-    alpha_display(HEX_CHAR_TABLE[analog_val >> 8]);
-
-    // Print result
-    if ((CoreDebug->DHCSR & CoreDebug_DHCSR_C_DEBUGEN_Msk)) {
-      printf("%#X  %d\n", analog_val, analog_val);
-    }
-  }
-
+  while (1)
+    ;
   return 0;
 }

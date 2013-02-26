@@ -52,18 +52,38 @@ int main(void) {
   LPC_TIM0 ->CCR = (0x1 << 0) | (0x1 << 2) | (0x1 << 3) | (0x1 << 5);
   LPC_TIM0 ->MCR = (0x3 << 0);			 // Interrupt and Reset on MR0 and MR1
 
-  LPC_TIM0 ->TCR = 0x02;						// reset timer
-  LPC_TIM0 ->PR = 1;
-  LPC_TIM0 ->MR0 = 12000000;				// match value
-  LPC_TIM0 ->IR = 0xff;						// reset all interrrupts
-  LPC_TIM0 ->MCR = 0x04;						// stop timer on match
-  LPC_TIM0 ->TCR = 1;							// enable timer
+  // Disable timer
+  LPC_TIM0 ->TCR = 0x02;
+
+  // No prescaling
+  LPC_TIM0 ->PR = 0;
+
+  // Match value
+  LPC_TIM0 ->MR0 = 12000000;
+
+  // Reset all interrupts (though we aren't using them in this example)
+  LPC_TIM0 ->IR = 0xff;
+
+  // Match Control Register
+  //   1 in bit 2 - timer will stop when values match.
+  //                when this happens, bit 0 of TCR will be cleared
+  LPC_TIM0 ->MCR = (1 << 2);
+
+  // Start timer
+  LPC_TIM0 ->TCR = 1;
 
   while (1) {
+    // Wait for bit 0 of TCR to be cleared
     if (!(LPC_TIM0 ->TCR & 0x01)) {
+
+      // Flip LED pin
       LPC_GPIO0 ->FIOPIN ^= (1 << 22);
-      LPC_TIM0 ->TCR = 0x02;						// reset timer
-      LPC_TIM0 ->TCR = 1;				// enable timer
+
+      // Start timer from 0
+      LPC_TIM0 ->TC = 0;
+
+      // Restart timer
+      LPC_TIM0 ->TCR = 1;
     }
   }
   return 0;

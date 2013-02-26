@@ -60,7 +60,7 @@ int main(void) {
   LPC_ADC ->ADCR = _BV(0) | _BV(21);
 
   // A/D Interrupt Enable Register (all disabled)
-  LPC_ADC ->ADINTEN = _BV(0);
+  LPC_ADC ->ADINTEN = 0;
 
   uint_fast16_t analog_val;
 

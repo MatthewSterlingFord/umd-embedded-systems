@@ -86,9 +86,9 @@ int main(void) {
   // timer value is reset and interrupt is triggered
   LPC_TIM0 ->MCR = 1 << 1;
   LPC_TIM0 ->TCR = 0x02;           // reset timer
-  LPC_TIM0 ->PR = 1;             // No prescale
+  LPC_TIM0 ->PR = 1;               // No prescale
   LPC_TIM0 ->MR0 = 0xffffffff;     // match value (unnecessary)
-  LPC_TIM0 ->IR = 0xff;           // reset all interrrupts
+  LPC_TIM0 ->IR = 0xff;            // reset all interrrupts
   LPC_TIM0 ->TCR = 1;              // enable timer
 
   // Capture Control Register

@@ -35,11 +35,14 @@ void ADC_IRQHandler(void) {
     // Print result
     analog_val = (LPC_ADC ->ADDR0 >> 4) & 0x0fff;
     if ((CoreDebug ->DHCSR & CoreDebug_DHCSR_C_DEBUGEN_Msk)) {
-      printf("%#X  %d\n", analog_val, analog_val);
+      printf("0: %#X  %d\n", analog_val, analog_val);
     }
   } else if (LPC_ADC ->ADDR1 & _BV(31)) {
     analog_val = (LPC_ADC ->ADDR1 >> 4) & 0x0fff;
     alpha_display(HEX_CHAR_TABLE[analog_val >> 8]);
+    if ((CoreDebug ->DHCSR & CoreDebug_DHCSR_C_DEBUGEN_Msk)) {
+      printf("1: %#X  %d\n", analog_val, analog_val);
+    }
   }
 }
 

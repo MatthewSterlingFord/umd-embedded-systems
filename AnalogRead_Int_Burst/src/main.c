@@ -68,14 +68,14 @@ int main(void) {
   // Configure pins
   //   P0.23 as AD0.0
   //   P0.24 as AD0.1
-  LPC_PINCON ->PINSEL1 |= _BV(14) | _BV(16);
+  LPC_PINCON ->PINSEL1 |= (1 << 14) | (1 << 16);
 
   // A/D Control Register
   //  1 in bit 0 - Select AD0.0 to be sampled
   //  1 in bit 1 - Select AD0.1 to be sampled
   //  0 in bits 15:8 - Don't divide clock
   //  0 in bit 16 - Disable burst mode
-  //  1 in bit 21 - Not in power-down mode
+  //  1 in bit 21 - Enabled; not in power-down mode
   //  0 in bits 26:24 - don't start a conversion yet
   LPC_ADC ->ADCR = _BV(0) | _BV(1) | _BV(21);
 

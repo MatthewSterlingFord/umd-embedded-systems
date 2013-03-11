@@ -39,8 +39,8 @@ void ADC_IRQHandler(void) {
 
   //asm volatile("bfc.w r2, #6, #10");
 
-  LPC_DAC ->DACR &= ~(0x3ff << 6);
-  LPC_DAC ->DACR |= (analog_val << 6);
+  //LPC_DAC ->DACR &= ~(0x3ff << 6);
+  LPC_DAC ->DACR = (analog_val << 6);
 
   // Start next conversion
   LPC_ADC ->ADCR |= _BV(24);

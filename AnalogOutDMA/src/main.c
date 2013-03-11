@@ -26,9 +26,6 @@ __CRP const unsigned int CRP_WORD = CRP_NO_CRP;
 // DMA DAC Buffer
 __attribute__ ((section(".ahb_ram")))
 static uint32_t dac_dma_buffer[DMA_BUFFER_LEN] = {
-    // Sine wave, 64 samples
-    // All values shifted to be written to bits 15:6 of DACR, and
-    // bias = 0
     0x8000, 0x8C80, 0x9900, 0xA500, 0xB100, 0xBC40,
     0xC700, 0xD100, 0xDA40, 0xE2C0, 0xEA40, 0xF0C0, 0xF600, 0xFA40, 0xFD40,
     0xFF40, 0xFFC0, 0xFF40, 0xFD40, 0xFA40, 0xF600, 0xF0C0, 0xEA40, 0xE2C0,
@@ -36,7 +33,17 @@ static uint32_t dac_dma_buffer[DMA_BUFFER_LEN] = {
     0x7380, 0x6700, 0x5B00, 0x4F00, 0x43C0, 0x3900, 0x2F00, 0x25C0, 0x1D40,
     0x15C0, 0x0F40, 0x0A00, 0x05C0, 0x02C0, 0x00C0, 0x0040, 0x00C0, 0x02C0,
     0x05C0, 0x0A00, 0x0F40, 0x15C0, 0x1D40, 0x25C0, 0x2F00, 0x3900, 0x43C0,
-    0x4F00, 0x5B00, 0x6700, 0x7380 };
+    0x4F00, 0x5B00, 0x6700, 0x7380
+    /*
+    0x8000, 0x8C80, 0x9900, 0xA500, 0xB100, 0xBC40,
+    0xC700, 0xD100, 0xDA40, 0xE2C0, 0xEA40, 0xF0C0, 0xF600, 0xFA40, 0xFD40,
+    0xFF40, 0xFFC0, 0xFF40, 0xFD40, 0xFA40, 0xF600, 0xF0C0, 0xEA40, 0xE2C0,
+    0xDA40, 0xD100, 0xC700, 0xBC40, 0xB100, 0xA500, 0x9900, 0x8C80, 0x8000,
+    0x7380, 0x6700, 0x5B00, 0x4F00, 0x43C0, 0x3900, 0x2F00, 0x25C0, 0x1D40,
+    0x15C0, 0x0F40, 0x0A00, 0x05C0, 0x02C0, 0x00C0, 0x0040, 0x00C0, 0x02C0,
+    0x05C0, 0x0A00, 0x0F40, 0x15C0, 0x1D40, 0x25C0, 0x2F00, 0x3900, 0x43C0,
+    0x4F00, 0x5B00, 0x6700, 0x7380 */
+};
 
 // DMA Linked List Nodes, in AHB SRAM
 // Two nodes which we will point to each other so they continually
@@ -57,19 +64,24 @@ void ADC_IRQHandler(void) {
   */
   // Equivalent to above (slight efficiency improvement):
 
-  /*
   //asm volatile("bfc.w r2, #6, #10");
   //LPC_DAC ->DACR &= ~(0x3ff << 6);
-  LPC_DAC ->DACR = (LPC_ADC ->ADDR0 & (0x03ff << 6));
-  */
+  //LPC_DAC ->DACR = (LPC_ADC ->ADDR0 & (0x03ff << 6));
 
-  /* Write to next pos in dma buffer:
-  dac_dma_buffer[pos & (DMA_BUFFER_LEN - 1)] = (LPC_ADC ->ADDR0 & (0x03ff << 6));
-  ++pos;
-   */
+  /* Write to next pos in dma buffer: */
+  //dac_dma_buffer[pos & (DMA_BUFFER_LEN - 1)] = (LPC_ADC ->ADDR0 & (0x03ff << 6));
+  uint_fast16_t volatile analog_val = (LPC_ADC ->ADDR0 >> 4) & 0x0fff;
+  analog_val = (analog_val - 0) * (0xffff - 200) / (0xfff - 0) + 200;
+  LPC_DAC->DACCNTVAL = analog_val;
+  //++pos;
 }
 
 int main(void) {
+  int j;
+  for (j=0; j < DMA_BUFFER_LEN; ++j) {
+    dac_dma_buffer[j] = (j%2)? 0xFFC0 : 0x0000;
+  }
+
   // Select 12MHz crystal oscillator
   LPC_SC ->CLKSRCSEL = 1;
 
@@ -106,12 +118,12 @@ int main(void) {
   LPC_SC ->PCONP |= _BV(12) | _BV(29);
 
   // Choose undivided peripheral clock for:
-  //                      ADC,         DAC,      GPDMA
-  LPC_SC ->PCLKSEL0 |= (1 << 22) | (1 << 24) | (1 << 29);
+  //                    ADC (CLK), DAC (CLK/8)
+  LPC_SC ->PCLKSEL0 |= (1 << 22) | (3 << 24);
 
   // Setup IO pins (not used currently, handy to keep around)
-  LPC_GPIO0 ->FIODIR = 0;
-  LPC_GPIO0 ->FIOSET = 0;
+  LPC_GPIO0 ->FIODIR = _BV(22);
+  LPC_GPIO0 ->FIOSET = _BV(22);
 
   // Configure pins
   //   P0.23 as AD0.0 (1 at bit 14)
@@ -141,8 +153,9 @@ int main(void) {
   LPC_DAC->DACCTRL = _BV(2) | _BV(3);
 
   // DAC Counter Value
-  //  32MHz /
-  LPC_DAC->DACCNTVAL = 32000000 / 44; // TODO: Think about this
+  //  32MHz / 8 = 4MHz
+  //  4MHz / 0xffff = 61.04...Hz
+  LPC_DAC->DACCNTVAL = 6205;
 
   // Setup DMA linked list
   dmaLLNode.sourceAddr = (unsigned long int) dac_dma_buffer;
@@ -163,21 +176,29 @@ int main(void) {
   LPC_GPDMACH0->DMACCSrcAddr = dmaLLNode.sourceAddr;
   LPC_GPDMACH0->DMACCDestAddr = dmaLLNode.destAddr;
   LPC_GPDMACH0->DMACCControl = dmaLLNode.dmaControl;
-  LPC_GPDMACH0->DMACCLLI = (unsigned long int) (&dmaLLNode) & 0xFFFFFFFC;
+  LPC_GPDMACH0->DMACCLLI = dmaLLNode.nextNode;
 
   // DMA Channel 0 Config
   //  Enable channel (1 at bit 0)
   //  Source peripheral: 0 (default, bits  5:1)
   //  Destination peripheral: DAC (7, bits  10:6)
   //  Transfer Type: memory-to-peripheral (1, bits 13:11)
-  LPC_GPDMACH0->DMACCConfig = _BV(0) | (7 << 6) | (1 << 11);
+  LPC_GPDMACH0->DMACCConfig = (7 << 6) | (1 << 11);
+
+  LPC_GPDMACH0->DMACCConfig |= _BV(0);
 
   NVIC_EnableIRQ(ADC_IRQn);
 
   // Start ADC Burst Mode (bit 16)
   LPC_ADC ->ADCR |= _BV(16);
 
-  while (1)
-    ;
+  volatile int i = 0;
+  for (;;) {
+    if (i >= 1000000) {
+      LPC_GPIO0 ->FIOPIN ^= (1 << 22);
+      i = 0;
+    }
+    ++i;
+  }
   return 0;
 }

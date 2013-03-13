@@ -86,6 +86,9 @@ int main(void) {
   //   Little-endian (default, 0 at bit 1)
   LPC_GPDMA->DMACConfig = _BV(0);
 
+  // Mysterious wait loop
+  while ( !(LPC_GPDMA->DMACConfig & 0x01) );
+
   // DAC Control Register
   //  Enable counter (1 at bit 2)
   //  Enable DMA (1 at bit 3)
@@ -99,7 +102,7 @@ int main(void) {
   // Setup DMA linked list
   // Sound sample can be more than 1 page (2^12, maximum transfer per LL node)
   uint32_t sound_buf_pos = (uint32_t) SOUND_CYMBAL;
-  int sound_buf_bytes = (sizeof(SOUND_CYMBAL));
+  int sound_buf_bytes = (sizeof(SOUND_CYMBAL) / 4);
   uint_fast16_t ll_idx = 0;
   uint_fast16_t bytes_this_node;
   while ((sound_buf_bytes > 0) && (ll_idx < 64)) {
@@ -112,7 +115,7 @@ int main(void) {
 
     // Linked List control information (Same as DMA channel control register)
     //  Transfer size: 64 (DMA_BUFFER_LEN, bits 11:0)
-    //  Source burst size: 1 (0 (default), bits 14:12)
+    //  Source burst size: 32 (4 (memory), bits 14:12)
     //  Destination burst size: 1 (0 (default), bits 17:15)
     //  Source transfer width: halfword (1, bits 20:18)
     //  Destination transfer width: halfword (1, bits 23:21)
@@ -120,7 +123,8 @@ int main(void) {
     //  Destination increment: don't increment (0, bit 27)
     //  Terminal count interrupt: disabled (0, bit 31)
     dmaLLNodes[ll_idx].dmaControl = bytes_this_node
-                                        | (1 << 18) | (1 << 21) | _BV(26);
+    								| (4 << 12)
+                                    | (1 << 18) | (1 << 21) | _BV(26);
 
     sound_buf_pos += bytes_this_node;
     sound_buf_bytes -= bytes_this_node;
@@ -146,7 +150,7 @@ int main(void) {
 
   volatile int i = 0;
   for (;;) {
-    if (i >= 100000) {
+    if (i >= 1000000) {
       LPC_GPIO0 ->FIOPIN ^= (1 << 22);
       i = 0;
     }

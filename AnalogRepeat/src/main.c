@@ -37,8 +37,8 @@ void ADC_IRQHandler(void) {
   // Equivalent to above:
   analog_val = (LPC_ADC ->ADDR0 >> 6) & 0x03ff;
 
-  LPC_DAC ->DACR &= ~(0x3ff << 6);
-  LPC_DAC ->DACR |= (analog_val << 6);
+  //LPC_DAC ->DACR &= ~(0x3ff << 6);
+  LPC_DAC ->DACR = (analog_val << 6);
 
   // Start next conversion
   LPC_ADC ->ADCR |= _BV(24);

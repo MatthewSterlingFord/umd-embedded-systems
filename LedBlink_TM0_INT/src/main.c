@@ -55,8 +55,11 @@ int main(void) {
   LPC_TIM0 ->PR = 0;
 
   // Capture 0 and 1 on rising edge, and enable interrupt
-  LPC_TIM0 ->CCR = (0x1 << 0) | (0x1 << 2) | (0x1 << 3) | (0x1 << 5);
-  LPC_TIM0 ->MCR = (0x3 << 0);			 // Interrupt and Reset on MR0 and MR1
+  
+// This is for input capture. It is not need for this projects LED blink 
+  // LPC_TIM0 ->CCR = (0x1 << 0) | (0x1 << 2) | (0x1 << 3) | (0x1 << 5);
+// This is done below as well in cleaner way. Not needed twice.  
+  // LPC_TIM0 ->MCR = (0x3 << 0);			 // Interrupt and Reset on MR0 and MR1
 
   // Disable timer
   LPC_TIM0 ->TCR = 0x02;
